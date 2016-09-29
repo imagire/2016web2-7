@@ -51,16 +51,16 @@ onload = function(){
   var m = new matIV();
 
   // 各種行列の生成と初期化
-  var mMatrix = m.identity(m.create());
+  var wMatrix = m.identity(m.create());
   var vMatrix = m.identity(m.create());
   var pMatrix = m.identity(m.create());
-  var tmpMatrix = m.identity(m.create());
-  var mvpMatrix = m.identity(m.create());
+  var vpMatrix = m.identity(m.create());
+  var wvpMatrix = m.identity(m.create());
 
   // ビュー×プロジェクション座標変換行列
-  m.lookAt([0.0, 0.0, 5.0], [0, 0, 0], [0, 1, 0], vMatrix);
-  m.perspective(45, c.width / c.height, 0.1, 100, pMatrix);
-  m.multiply(pMatrix, vMatrix, tmpMatrix);
+  m.lookAt([0.0, 0.0, 5.0], [0, 0, 0], [0, 1, 0], vMatrix);// カメラ位置、注視点、上方向
+  m.perspective(45, c.width / c.height, 0.1, 100, pMatrix);// 画角 アスペクト比,近クリップ面,遠方クリップ面
+  m.multiply(pMatrix, vMatrix, vpMatrix);
 
   // カウンタの宣言
   var count = 0;
@@ -72,24 +72,24 @@ onload = function(){
     gl.clearDepth(1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    // カウンタをインクリメントする
-    count++;
-
     // カウンタを元にラジアンを算出
     var rad = (count % 360) * Math.PI / 180;
 
     // モデルはY軸を中心に回転する
-    m.identity(mMatrix);
-    m.translate(mMatrix, [1.0, -1.0, 0.0], mMatrix);
-    m.rotate(mMatrix, rad, [0, 1, 0], mMatrix);
+    m.identity(wMatrix);
+    m.translate(wMatrix, [1.0, -1.0, 0.0], wMatrix);
+    m.rotate(wMatrix, rad, [0, 1, 0], wMatrix);
 
     // モデルの座標変換行列を完成させレンダリングする
-    m.multiply(tmpMatrix, mMatrix, mvpMatrix);
-    gl.uniformMatrix4fv(uniLocation, false, mvpMatrix);
+    m.multiply(vpMatrix, wMatrix, wvpMatrix);
+    gl.uniformMatrix4fv(uniLocation, false, wvpMatrix);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
 
     // コンテキストの再描画
     gl.flush();
+
+    // カウンタをインクリメントする
+    count++;
 
     // ループのために再帰呼び出し
     setTimeout(arguments.callee, 1000 / 30);
